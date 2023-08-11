@@ -8,4 +8,4 @@
 Heo版本：https://github.com/zhheo/Post-Abstract-AI
 4. 配置Key与文章选择器，并配置前端版本号信息(轻笑版本填写：4.7 Heo填写0.14，两个都填)。具体可前往https://github.com/zhheo/Post-Abstract-AI查看示例文章选择器值。
 5. 高级配置参考对应版本github仓库填写。（不需要填写<script>标签）
-6. 
+6. 预览时不会生成摘要。
