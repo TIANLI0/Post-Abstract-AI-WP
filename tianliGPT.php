@@ -102,7 +102,7 @@ function custom_plugin_sanitize_version($input) {
 
 // 加载脚本
 function custom_plugin_enqueue_scripts() {
-    if (is_admin()) {
+    if (is_admin()||is_preview())  {
         return;
     }
 
@@ -117,11 +117,13 @@ function custom_plugin_enqueue_scripts() {
         $script = "https://cdn1.tianli0.top/gh/zhheo/Post-Abstract-AI@{$heo_version}/tianli_gpt.js";
         wp_enqueue_style('custom-plugin-heo-css', $link);
         wp_enqueue_script('custom-plugin-heo-js', $script);
+        custom_plugin_add_heo_content();
     } elseif ($version == 'chuckle') {
         $chuckle_version = get_option('custom_plugin_chuckle_version');
         $script = "https://jsd.onmicrosoft.cn/gh/qxchuckle/Post-Summary-AI@{$chuckle_version}/chuckle-post-ai.js";
         wp_enqueue_script('custom-plugin-chuckle-js', $script);
         wp_add_inline_script('custom-plugin-chuckle-js', $advanced_config, 'after');
+        custom_plugin_add_chuckle_content();
     }
 }
 add_action('wp_enqueue_scripts', 'custom_plugin_enqueue_scripts');
@@ -139,7 +141,6 @@ function custom_plugin_add_heo_content() {
     </script>
     <?php
 }
-add_action('wp_footer', 'custom_plugin_add_heo_content');
 
 // 添加轻笑版本的内容
 function custom_plugin_add_chuckle_content() {
@@ -158,4 +159,3 @@ function custom_plugin_add_chuckle_content() {
     </script>
     <?php
 }
-add_action('wp_footer', 'custom_plugin_add_chuckle_content');
