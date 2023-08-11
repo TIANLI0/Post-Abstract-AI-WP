@@ -102,28 +102,32 @@ function custom_plugin_sanitize_version($input) {
 
 // 加载脚本
 function custom_plugin_enqueue_scripts() {
-    if (is_admin()||is_preview())  {
-        return;
-    }
+    // 判断是否在文章页面
+    if (is_single() || is_page()) {
+        $post_id = get_the_ID();
+        $embed_js = get_post_meta($post_id, 'custom_plugin_embed_js', true);
 
-    $version = get_option('custom_plugin_version');
-    $key = get_option('custom_plugin_key');
-    $post_selector = get_option('custom_plugin_post_selector');
-    $advanced_config = get_option('custom_plugin_advanced_config');
+        if ($embed_js !== 'no') {
+            $version = get_option('custom_plugin_version');
+            $key = get_option('custom_plugin_key');
+            $post_selector = get_option('custom_plugin_post_selector');
+            $advanced_config = get_option('custom_plugin_advanced_config');
 
-    if ($version == 'heo') {
-        $heo_version = get_option('custom_plugin_heo_version');
-        $link = "https://cdn1.tianli0.top/gh/zhheo/Post-Abstract-AI@{$heo_version}/tianli_gpt.css";
-        $script = "https://cdn1.tianli0.top/gh/zhheo/Post-Abstract-AI@{$heo_version}/tianli_gpt.js";
-        wp_enqueue_style('custom-plugin-heo-css', $link);
-        wp_enqueue_script('custom-plugin-heo-js', $script);
-        custom_plugin_add_heo_content();
-    } elseif ($version == 'chuckle') {
-        $chuckle_version = get_option('custom_plugin_chuckle_version');
-        $script = "https://jsd.onmicrosoft.cn/gh/qxchuckle/Post-Summary-AI@{$chuckle_version}/chuckle-post-ai.js";
-        wp_enqueue_script('custom-plugin-chuckle-js', $script);
-        wp_add_inline_script('custom-plugin-chuckle-js', $advanced_config, 'after');
-        custom_plugin_add_chuckle_content();
+            if ($version === 'heo') {
+                $heo_version = get_option('custom_plugin_heo_version');
+                $link = "https://cdn1.tianli0.top/gh/zhheo/Post-Abstract-AI@{$heo_version}/tianli_gpt.css";
+                $script = "https://cdn1.tianli0.top/gh/zhheo/Post-Abstract-AI@{$heo_version}/tianli_gpt.js";
+                wp_enqueue_style('custom-plugin-heo-css', $link);
+                wp_enqueue_script('custom-plugin-heo-js', $script);
+                custom_plugin_add_heo_content();
+            } elseif ($version === 'chuckle') {
+                $chuckle_version = get_option('custom_plugin_chuckle_version');
+                $script = "https://jsd.onmicrosoft.cn/gh/qxchuckle/Post-Summary-AI@{$chuckle_version}/chuckle-post-ai.js";
+                wp_enqueue_script('custom-plugin-chuckle-js', $script);
+                wp_add_inline_script('custom-plugin-chuckle-js', $advanced_config, 'after');
+                custom_plugin_add_chuckle_content();
+            }
+        }
     }
 }
 add_action('wp_enqueue_scripts', 'custom_plugin_enqueue_scripts');
@@ -159,3 +163,59 @@ function custom_plugin_add_chuckle_content() {
     </script>
     <?php
 }
+
+// 添加自定义元框到文章页面
+function custom_plugin_add_embed_js_meta_box() {
+    add_meta_box(
+        'custom-plugin-embed-js-meta-box',
+        'TianliGPT',
+        'custom_plugin_render_embed_js_meta_box',
+        'post',
+        'side',
+        'default'
+    );
+    add_meta_box(
+        'custom-plugin-embed-js-meta-box',
+        'TianliGPT',
+        'custom_plugin_render_embed_js_meta_box',
+        'page',
+        'side',
+        'default'
+    );
+}
+add_action('add_meta_boxes', 'custom_plugin_add_embed_js_meta_box');
+
+// 渲染自定义元框的内容
+function custom_plugin_render_embed_js_meta_box($post) {
+    $embed_js = get_post_meta($post->ID, 'custom_plugin_embed_js', true);
+    wp_nonce_field('custom_plugin_save_embed_js', 'custom_plugin_embed_js_nonce');
+    ?>
+    <label>
+        <input type="checkbox" name="custom_plugin_embed_js" value="no" <?php checked($embed_js, 'no'); ?>>
+        不使用TianliGPT
+    </label>
+    <?php
+}
+
+// 保存自定义元框的值
+function custom_plugin_save_embed_js_meta_box($post_id) {
+    if (!isset($_POST['custom_plugin_embed_js_nonce']) || !wp_verify_nonce($_POST['custom_plugin_embed_js_nonce'], 'custom_plugin_save_embed_js')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    if (isset($_POST['custom_plugin_embed_js'])) {
+        $embed_js = sanitize_text_field($_POST['custom_plugin_embed_js']);
+        update_post_meta($post_id, 'custom_plugin_embed_js', $embed_js);
+    } else {
+        delete_post_meta($post_id, 'custom_plugin_embed_js');
+    }
+}
+add_action('save_post', 'custom_plugin_save_embed_js_meta_box');
