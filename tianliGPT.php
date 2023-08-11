@@ -2,7 +2,7 @@
 /**
  * Plugin Name: TianliGPT
  * Description: 为你的博客添加AI摘要
- * Version: 1.0
+ * Version: 1.1
  * Author: Tianli
  * Author URI: https://tianli-blog.club/
  */
